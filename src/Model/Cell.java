@@ -5,6 +5,12 @@ public class Cell {
     private int col;
     private CellState cellState;
     private Player player;
+
+    public Cell(int rows, int cols){
+        this.row = rows;
+        this.col = cols;
+        this.cellState = CellState.EMPTY;
+    }
     
     public int getRow() {
         return row;
@@ -29,5 +35,14 @@ public class Cell {
     }
     public void setPlayer(Player player) {
         this.player = player;
+    }
+
+    public void display(){
+        if(player == null){
+            System.out.print("| - |");
+        }
+        else{
+            System.out.print("| " + player.getSymbol().getSymb() + " |");
+        }
     }
 }
