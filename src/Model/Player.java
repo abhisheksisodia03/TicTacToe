@@ -1,7 +1,5 @@
 package Model;
 
-import java.util.Scanner;
-
 public class Player {
     private long id;
     private String name;
