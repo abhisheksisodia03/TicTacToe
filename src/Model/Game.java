@@ -20,6 +20,7 @@ public class Game {
         this.gameState = GameState.INPROGRESS;
         this.moves = new ArrayList<>();
         this.nextPlayerIndex = 0;
+        this.board = new Board(dimension);
     }
 
     public List<Player> getPlayers() {
@@ -61,9 +62,12 @@ public class Game {
     public void makeMove(){
         Player currentPlayer = players.get(nextPlayerIndex);
         System.out.println("It is " + currentPlayer.getName() + "'s move.");
-        Move move = currentPlayer.makeMove();
+        Move move = currentPlayer.makeMove(board);
 
-        //TODO validation
+        if(!validateMove(move)){
+            System.out.println("Invalid move. Please try again.");
+            return;
+        }
         
         int row = move.getCell().getRow();
         int col = move.getCell().getCol();
@@ -73,6 +77,59 @@ public class Game {
 
         Move finalMove = new Move(cellToChange, currentPlayer);
         moves.add(finalMove);
+        nextPlayerIndex++;
+        nextPlayerIndex %= players.size();
+        
+        if(checkWinner(board, finalMove)){
+            gameState = GameState.WINNER;
+            winner = currentPlayer;
+        }
+        else if(moves.size() == (board.getSize() * board.getSize())){
+            gameState = GameState.DRAW;
+        }
+    }
+
+    public boolean validateMove(Move move){
+        int row = move.getCell().getRow();
+        int col = move.getCell().getCol();
+
+        if(row >= board.getSize() || col >= board.getSize()){
+            return false;
+        }
+        if(move.getCell().getCellState().equals(CellState.EMPTY)){
+            return true;
+        }
+        return false;
+    }
+
+    public boolean checkWinner(Board board, Move move){
+        for(WinningStrategy winningStrategy: winningStrategies){
+            if(winningStrategy.checkWinner(board, move)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void undo(){
+        if(moves.size() == 0){
+            System.out.println("There is no move to undo.");
+            return;
+        }
+
+        Move lastMove = moves.get(moves.size()-1);
+        moves.remove(lastMove);
+
+        Cell lastCell = lastMove.getCell();
+        lastCell.setCellState(CellState.EMPTY);
+
+        for(WinningStrategy winningStrategy: winningStrategies){
+            winningStrategy.handleUndo(board, lastMove);
+        }
+        lastCell.setPlayer(null);
+
+        nextPlayerIndex--;
+        nextPlayerIndex = (nextPlayerIndex + players.size()) % players.size();
     }
 
     
